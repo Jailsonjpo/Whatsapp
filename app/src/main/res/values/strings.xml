@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Whatsapp</string>
+    <string name="digite_email">Digite seu E-mail</string>
+    <string name="digite_senha">Digite sua Senha</string>
+    <string name="botao_logar">Logar</string>
+    <string name="nao_tem_conta">Não tem conta? Cadastre-se</string>
+    <string name="digite_nome">Digite o seu nome</string>
+    <string name="botao_cadastrar">Cadastrar</string>
+</resources>
