@@ -17,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.jailsonspeedway.whatsapp.R;
 import com.jailsonspeedway.whatsapp.config.ConfiguracaoFirebase;
+import com.jailsonspeedway.whatsapp.helper.Base64Custom;
 import com.jailsonspeedway.whatsapp.model.Usuario;
 
 public class CadastroActivity extends AppCompatActivity {
@@ -34,7 +35,7 @@ public class CadastroActivity extends AppCompatActivity {
         campoSenha = findViewById(R.id.editLoginSenha);
     }
 
-    public void cadastrarUsuario(Usuario usuario){
+    public void cadastrarUsuario(final Usuario usuario){
 
         autenticacao = ConfiguracaoFirebase.getFirebaseAutenticacao();
         autenticacao.createUserWithEmailAndPassword(usuario.getEmail(), usuario.getSenha()).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -45,6 +46,18 @@ public class CadastroActivity extends AppCompatActivity {
 
                     Toast.makeText(CadastroActivity.this, "Sucesso ao cadastrar usuário", Toast.LENGTH_LONG).show();
                     finish();
+
+                    try {
+                        String identificadorUsuario = Base64Custom.codificarBase64(usuario.getEmail());
+                        usuario.setId(identificadorUsuario);
+                        usuario.salvar();
+
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
+
+
 
                 }else{
 

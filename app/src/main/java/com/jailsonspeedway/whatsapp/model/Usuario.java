@@ -1,10 +1,31 @@
 package com.jailsonspeedway.whatsapp.model;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.Exclude;
+import com.jailsonspeedway.whatsapp.config.ConfiguracaoFirebase;
+
 public class Usuario {
 
-    private  String nome, email, senha;
+    private  String id, nome, email, senha;
 
     public Usuario() {
+    }
+
+    public void salvar(){
+
+        DatabaseReference firebaseRef = ConfiguracaoFirebase.getFirebaseDatabase();
+        DatabaseReference usuario = firebaseRef.child("usuarios").child(getId());
+
+        usuario.setValue(this);
+    }
+
+    @Exclude
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getNome() {
@@ -23,6 +44,7 @@ public class Usuario {
         this.email = email;
     }
 
+    @Exclude
     public String getSenha() {
         return senha;
     }
