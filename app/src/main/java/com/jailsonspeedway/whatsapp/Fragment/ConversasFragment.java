@@ -13,9 +13,9 @@ import com.jailsonspeedway.whatsapp.R;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class InscricoesFragment extends Fragment {
+public class ConversasFragment extends Fragment {
 
-    public InscricoesFragment() {
+    public ConversasFragment() {
         // Required empty public constructor
     }
 
@@ -24,6 +24,6 @@ public class InscricoesFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_inscricoes, container, false);
+        return inflater.inflate(R.layout.fragment_conversas, container, false);
     }
 }
