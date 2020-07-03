@@ -15,11 +15,28 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.print.PrinterId;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.jailsonspeedway.whatsapp.R;
+import com.jailsonspeedway.whatsapp.config.ConfiguracaoFirebase;
+import com.jailsonspeedway.whatsapp.helper.Base64Custom;
 import com.jailsonspeedway.whatsapp.helper.Permissao;
+import com.jailsonspeedway.whatsapp.helper.UsuarioFirebase;
+
+import java.io.ByteArrayOutputStream;
+import java.net.URI;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -33,17 +50,25 @@ public class ConfiguracoesActivity extends AppCompatActivity {
     private static final int SELECAO_CAMERA = 100;
     private static final int SELECAO_GALERIA = 200;
     private CircleImageView circleImageViewPerfil;
+    private StorageReference storageReference;
+    private String identificadorUsuario;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_configuracoes);
 
+        storageReference = ConfiguracaoFirebase.getFirebaseStorage();
+
+        //Configuracoes iniciais
+        storageReference = ConfiguracaoFirebase.getFirebaseStorage();
+        identificadorUsuario = UsuarioFirebase.getIdentificadorUsuario();
+
         //Validar Permissoes
         Permissao.validarPermissoes(permissoesNecessarias, this, 1);
 
-        imageButtonCamera = findViewById(R.id.imageButtonCamera);
-        imageButtonGaleria = findViewById(R.id.imageButtonGaleria);
+        imageButtonCamera     = findViewById(R.id.imageButtonCamera);
+        imageButtonGaleria    = findViewById(R.id.imageButtonGaleria);
         circleImageViewPerfil = findViewById(R.id.circleImageViewFotoPerfil);
 
         Toolbar toolbar = findViewById(R.id.toolbarPrincipal);
@@ -51,6 +76,19 @@ public class ConfiguracoesActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        //Recuperar dados do usuário
+        FirebaseUser usuario = UsuarioFirebase.getUsuarioAtual();
+        Uri url = usuario.getPhotoUrl();
+
+        if ( url != null){
+
+            Glide.with(ConfiguracoesActivity.this).load(url).into(circleImageViewPerfil);
+
+        }else{
+            circleImageViewPerfil.setImageResource(R.drawable.padrao);
+        }
+
 
         imageButtonCamera.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,6 +136,58 @@ public class ConfiguracoesActivity extends AppCompatActivity {
 
                 if (imagem != null){
                     circleImageViewPerfil.setImageBitmap(imagem);
+
+                    //Recuperar dados da imagem para o firebase
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    imagem.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+
+                    byte[] dadosImagem = baos.toByteArray();
+
+                    //Salvar imagem no Firebase
+                    final StorageReference imagemRef = storageReference
+                            .child("imagens").child("perfil")
+                            //.child(identificadorUsuario)
+                            .child(identificadorUsuario +".jpeg");
+
+                    UploadTask uploadTask = imagemRef.putBytes( dadosImagem );
+                    uploadTask.addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(ConfiguracoesActivity.this,
+                                    "Não foi possível fazer o upload imagem",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            Toast.makeText(ConfiguracoesActivity.this,
+                                    "Sucesso ao fazer o upload da imagem",
+                                    Toast.LENGTH_LONG).show();
+
+                            storageReference.child("/imagens/perfil/"+identificadorUsuario+".jpeg").
+                                    getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(Uri uri) {
+
+                                    atualizaFotoUsuario( uri );
+                                    Log.i("Info firebase","Sucesso ao fazer o download");
+
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(ConfiguracoesActivity.this,
+                                            "Erro ao fazer o download da imagem",
+                                            Toast.LENGTH_LONG).show();
+
+                                }
+                            });
+
+
+                        }
+                    });
+
+
                 }
 
             }catch (Exception e){
@@ -105,6 +195,12 @@ public class ConfiguracoesActivity extends AppCompatActivity {
             }
 
         }
+    }
+
+    public void atualizaFotoUsuario(Uri uri){
+
+            UsuarioFirebase.atualizaFotoUsuario(uri);
+
     }
 
     @Override
