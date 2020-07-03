@@ -18,6 +18,7 @@ import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.jailsonspeedway.whatsapp.R;
 import com.jailsonspeedway.whatsapp.config.ConfiguracaoFirebase;
 import com.jailsonspeedway.whatsapp.helper.Base64Custom;
+import com.jailsonspeedway.whatsapp.helper.UsuarioFirebase;
 import com.jailsonspeedway.whatsapp.model.Usuario;
 
 public class CadastroActivity extends AppCompatActivity {
@@ -45,6 +46,7 @@ public class CadastroActivity extends AppCompatActivity {
                 if(task.isSuccessful()){
 
                     Toast.makeText(CadastroActivity.this, "Sucesso ao cadastrar usuário", Toast.LENGTH_LONG).show();
+                    UsuarioFirebase.atualizaNomeUsuario(usuario.getNome());
                     finish();
 
                     try {
@@ -55,9 +57,6 @@ public class CadastroActivity extends AppCompatActivity {
                     }catch (Exception e){
                         e.printStackTrace();
                     }
-
-
-
 
                 }else{
 
