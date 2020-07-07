@@ -26,10 +26,8 @@ public class UsuarioFirebase {
     }
 
     public static FirebaseUser getUsuarioAtual(){
-
         FirebaseAuth usuario = ConfiguracaoFirebase.getFirebaseAutenticacao();
         return usuario.getCurrentUser();
-
     }
 
     public static boolean atualizaNomeUsuario(String nome){

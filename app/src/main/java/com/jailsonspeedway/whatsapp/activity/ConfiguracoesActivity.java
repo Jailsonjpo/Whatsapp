@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.common.internal.Objects;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -70,7 +71,7 @@ public class ConfiguracoesActivity extends AppCompatActivity {
         //Configuracoes iniciais
         storageReference     = ConfiguracaoFirebase.getFirebaseStorage();
         identificadorUsuario = UsuarioFirebase.getIdentificadorUsuario();
-        usuarioLogado = UsuarioFirebase.getDadosUsuarioLogado();
+        usuarioLogado        = UsuarioFirebase.getDadosUsuarioLogado();
 
         //Validar Permissoes
         Permissao.validarPermissoes(permissoesNecessarias, this, 1);
@@ -175,36 +176,23 @@ public class ConfiguracoesActivity extends AppCompatActivity {
                             //.child(identificadorUsuario)
                             .child(identificadorUsuario +".jpeg");
 
-                    UploadTask uploadTask = imagemRef.putBytes( dadosImagem );
+                    UploadTask uploadTask = imagemRef.putBytes(dadosImagem);
                     uploadTask.addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(ConfiguracoesActivity.this,
-                                    "Não foi possível fazer o upload imagem",
-                                    Toast.LENGTH_LONG).show();
+                            Toast.makeText(ConfiguracoesActivity.this, "Erro ao fazer upload da imagem", Toast.LENGTH_SHORT).show();
                         }
                     }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            Toast.makeText(ConfiguracoesActivity.this,
-                                    "Sucesso ao fazer o upload da imagem",
-                                    Toast.LENGTH_LONG).show();
+                            Toast.makeText(ConfiguracoesActivity.this, "Sucesso ao fazer upload da imagem", Toast.LENGTH_SHORT).show();
 
-                            storageReference.child("/imagens/perfil/"+identificadorUsuario+".jpeg").
-                                    getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            imagemRef.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
                                 @Override
-                                public void onSuccess(Uri uri) {
+                                public void onComplete(@NonNull Task<Uri> task) {
 
-                                    atualizaFotoUsuario( uri );
-                                    Log.i("Info firebase","Sucesso ao fazer o download");
-
-                                }
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Toast.makeText(ConfiguracoesActivity.this,
-                                            "Erro ao fazer o download da imagem",
-                                            Toast.LENGTH_LONG).show();
+                                  Uri url = task.getResult();
+                                     atualizaFotoUsuario (url);
                                 }
                             });
                         }
@@ -214,7 +202,6 @@ public class ConfiguracoesActivity extends AppCompatActivity {
             }catch (Exception e){
                 e.printStackTrace();
             }
-
         }
     }
 
@@ -228,7 +215,6 @@ public class ConfiguracoesActivity extends AppCompatActivity {
 
                 Toast.makeText(ConfiguracoesActivity.this, "Sua foto foi alterada!", Toast.LENGTH_SHORT).show();
             }
-
     }
 
     @Override
@@ -240,7 +226,6 @@ public class ConfiguracoesActivity extends AppCompatActivity {
             if(permissaoResultado == PackageManager.PERMISSION_DENIED){
                 alertaValidacaoPermissao();
             }
-
         }
     }
 

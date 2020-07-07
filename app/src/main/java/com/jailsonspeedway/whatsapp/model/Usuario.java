@@ -7,10 +7,11 @@ import com.google.firebase.database.Exclude;
 import com.jailsonspeedway.whatsapp.config.ConfiguracaoFirebase;
 import com.jailsonspeedway.whatsapp.helper.UsuarioFirebase;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Usuario {
+public class Usuario implements Serializable {
 
     private  String id, nome, email, senha, foto;
 
@@ -32,7 +33,7 @@ public class Usuario {
 
         DatabaseReference usuariosRef = database.child("usuarios").child(identificadorUsuario);
 
-        Map<String, Object> valoresUsuario = converterParaMap();
+        Map<String, Object>valoresUsuario = converterParaMap();
         usuariosRef.updateChildren(valoresUsuario);
 
     }
