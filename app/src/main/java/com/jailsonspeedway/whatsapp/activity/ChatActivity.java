@@ -39,6 +39,7 @@ import com.jailsonspeedway.whatsapp.adapter.MensagensAdapter;
 import com.jailsonspeedway.whatsapp.config.ConfiguracaoFirebase;
 import com.jailsonspeedway.whatsapp.helper.Base64Custom;
 import com.jailsonspeedway.whatsapp.helper.UsuarioFirebase;
+import com.jailsonspeedway.whatsapp.model.Conversa;
 import com.jailsonspeedway.whatsapp.model.Mensagem;
 import com.jailsonspeedway.whatsapp.model.Usuario;
 
@@ -244,9 +245,23 @@ public class ChatActivity extends AppCompatActivity {
             //Salvar mensagem para o Destinatário
             salvarMensagem(idUsuarioDestinatario, idUsuarioRemetente, mensagem);
 
+            //Salvar Conversa
+            salvarConversa(mensagem);
+
         }else{
             Toast.makeText(ChatActivity.this, "Digite uma mensagem para enviar!", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void salvarConversa(Mensagem msg){
+        Conversa conversaRemetente = new Conversa();
+        conversaRemetente.setIdRemetente(idUsuarioRemetente);
+        conversaRemetente.setIdDestinatario(idUsuarioDestinatario);
+        conversaRemetente.setUltimaMensagem(msg.getMensagem());
+        conversaRemetente.setUsuarioExibicao(usuarioDestinatario);
+
+        conversaRemetente.salvar();
+
     }
 
     private void salvarMensagem(String idRemetente, String idDestinatario, Mensagem msg){
