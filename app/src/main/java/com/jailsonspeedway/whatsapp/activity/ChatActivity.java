@@ -1,9 +1,15 @@
 package com.jailsonspeedway.whatsapp.activity;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -14,8 +20,11 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,6 +32,8 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.jailsonspeedway.whatsapp.R;
 import com.jailsonspeedway.whatsapp.adapter.MensagensAdapter;
 import com.jailsonspeedway.whatsapp.config.ConfiguracaoFirebase;
@@ -31,8 +42,10 @@ import com.jailsonspeedway.whatsapp.helper.UsuarioFirebase;
 import com.jailsonspeedway.whatsapp.model.Mensagem;
 import com.jailsonspeedway.whatsapp.model.Usuario;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -41,8 +54,10 @@ public class ChatActivity extends AppCompatActivity {
     private TextView textViewNome;
     private CircleImageView circleImageViewfoto;
     private EditText editMensagem;
+    private ImageView imageCamera;
     private Usuario usuarioDestinatario;
     private DatabaseReference database;
+    private StorageReference storage;
     private DatabaseReference mensagensRef;
     private ChildEventListener childEventListenerMensagem;
 
@@ -52,7 +67,7 @@ public class ChatActivity extends AppCompatActivity {
     private String idUsuarioRemetente, idUsuarioDestinatario;
     private MensagensAdapter adapter;
     private List<Mensagem> mensagens = new ArrayList<>();
-
+    private static final int SELECAO_CAMERA = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +85,7 @@ public class ChatActivity extends AppCompatActivity {
         circleImageViewfoto = findViewById(R.id.circleImageFotoChat);
         editMensagem        = findViewById(R.id.editMensagem);
         recyclerMensagens   = findViewById(R.id.recyclerMensagens);
+        imageCamera         = findViewById(R.id.imageCamera);
 
         //Recuperar dados do usuário remetente
         idUsuarioRemetente = UsuarioFirebase.getIdentificadorUsuario();
@@ -106,7 +122,110 @@ public class ChatActivity extends AppCompatActivity {
     recyclerMensagens.setAdapter(adapter);
 
     database = ConfiguracaoFirebase.getFirebaseDatabase();
+    storage = ConfiguracaoFirebase.getFirebaseStorage();
+
     mensagensRef = database.child("mensagens").child(idUsuarioRemetente).child(idUsuarioDestinatario);
+
+    //Evento de clique na camera
+        imageCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                if(i.resolveActivity(getPackageManager()) != null){
+                    startActivityForResult(i, SELECAO_CAMERA );
+                }
+            }
+        });
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(resultCode == RESULT_OK){
+
+            Bitmap imagem = null;
+
+            try {
+                switch (requestCode){
+
+                    case SELECAO_CAMERA:
+                        imagem = (Bitmap) data.getExtras().get("data");
+                        break;
+
+                   /* case SELECAO_GALERIA:
+                        Uri localImagemSelecionada = data.getData();
+                        imagem = MediaStore.Images.Media.getBitmap(getContentResolver(), localImagemSelecionada );
+                        break;*/
+                }
+
+                if (imagem != null){
+
+                    //Recuperar dados da imagem para o firebase
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    imagem.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+                    byte[] dadosImagem = baos.toByteArray();
+
+                    //Criar nome da imagem
+                    String nomeImagem = UUID.randomUUID().toString();
+
+                    //Salvar imagem no Firebase, Configurar referencia do firebase
+                    final StorageReference imagemRef = storage
+                            .child("imagens").child("fotos")
+                            //.child(identificadorUsuario)
+                            .child(idUsuarioRemetente)
+                            .child(nomeImagem + ".jpeg");
+
+                    UploadTask uploadTask = imagemRef.putBytes(dadosImagem);
+                    uploadTask.addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+
+                            Log.d("Erro", "Erro ao fazer upload da imagem");
+                                    Toast.makeText(ChatActivity.this, "Erro ao fazer upload da imagem", Toast.LENGTH_SHORT).show();
+
+                        }
+                    }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                            imagemRef.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Uri> task) {
+                                 String url = task.getResult().toString();
+
+                                    Mensagem mensagem = new Mensagem();
+                                    mensagem.setIdUsuario((idUsuarioRemetente));
+                                    mensagem.setMensagem("imagem.jpeg");
+                                    mensagem.setImagem(url);
+
+                                    //Salvar mensagem Remetente
+                                    salvarMensagem(idUsuarioRemetente, idUsuarioDestinatario, mensagem);
+                                    //Salvar mensagem Destinatario
+                                    salvarMensagem(idUsuarioDestinatario, idUsuarioRemetente, mensagem);
+
+                                    Toast.makeText(ChatActivity.this, "Sucesso ao enviar imagem", Toast.LENGTH_SHORT).show();
+
+                                }
+                            });
+
+                        }
+                    });
+
+
+                }
+
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+
+
+
+        }
+
     }
 
     public void enviarMensagem(View view){
