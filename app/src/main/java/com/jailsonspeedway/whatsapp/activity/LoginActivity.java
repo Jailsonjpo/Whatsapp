@@ -60,14 +60,10 @@ public class LoginActivity extends AppCompatActivity {
                         excessao = "Erro ao cadastrar usuário " + e.getMessage();
                         e.printStackTrace();
                     }
-
                     Toast.makeText(LoginActivity.this, excessao, Toast.LENGTH_SHORT).show();
-
                 }
-
             }
         });
-
     }
 
     public void validarAutenticacaoUsuario(View view){

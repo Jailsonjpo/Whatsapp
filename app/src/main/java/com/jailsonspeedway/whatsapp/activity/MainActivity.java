@@ -57,6 +57,24 @@ public class MainActivity extends AppCompatActivity {
 
         //Configuracao do Search View
         searchView      = findViewById(R.id.materialSearchPrincipal);
+
+        //Listener para o Search View
+        searchView.setOnSearchViewListener(new MaterialSearchView.SearchViewListener() {
+            @Override
+            public void onSearchViewShown() {
+
+            }
+
+            @Override
+            public void onSearchViewClosed() {
+
+                ConversasFragment fragment = (ConversasFragment) adapter.getPage(0);
+                fragment.recarregarConversas();
+
+            }
+        });
+
+        //Listener para caixa de texto
         searchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -70,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
                 // Log.d("Evento", "onQueryTextChange");
                 ConversasFragment fragment = (ConversasFragment) adapter.getPage(0);
                 if(newText != null && !newText.isEmpty()){
-                    fragment.pesquisarConversas(newText);
+                    fragment.pesquisarConversas(newText.toLowerCase());
 
                 }
 

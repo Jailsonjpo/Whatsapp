@@ -20,6 +20,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 import com.jailsonspeedway.whatsapp.R;
 import com.jailsonspeedway.whatsapp.activity.ChatActivity;
+import com.jailsonspeedway.whatsapp.activity.GrupoActivity;
 import com.jailsonspeedway.whatsapp.adapter.Contatosadapter;
 import com.jailsonspeedway.whatsapp.config.ConfiguracaoFirebase;
 import com.jailsonspeedway.whatsapp.helper.RecyclerItemClickListener;
@@ -27,6 +28,7 @@ import com.jailsonspeedway.whatsapp.helper.UsuarioFirebase;
 import com.jailsonspeedway.whatsapp.model.Usuario;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -39,7 +41,6 @@ public class ContatosFragment extends Fragment {
     private DatabaseReference usuariosRef;
     private ValueEventListener valueEventListenerContatos;
     private FirebaseUser usuarioAtual;
-
 
     public ContatosFragment() {
         // Required empty public constructor
@@ -66,14 +67,29 @@ public class ContatosFragment extends Fragment {
         recyclerViewListaContatos.setAdapter(adapter);
 
         //Configurar Evento de clique no recyclerview
-        recyclerViewListaContatos.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), recyclerViewListaContatos, new RecyclerItemClickListener.OnItemClickListener() {
+        recyclerViewListaContatos.addOnItemTouchListener(
+                new RecyclerItemClickListener(
+                        getActivity(),
+                        recyclerViewListaContatos,
+                        new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                Usuario usuarioSelecionado = listaContatos.get(position);
-                Intent i = new Intent(getActivity(), ChatActivity.class);
-                i.putExtra("chatContato", usuarioSelecionado);
-                startActivity(i);
 
+                List<Usuario> listaUsuarioAtualizada = adapter.getContatos();
+
+                Usuario usuarioSelecionado = listaUsuarioAtualizada.get(position);
+                boolean cabecalho = usuarioSelecionado.getEmail().isEmpty();
+
+                if(cabecalho){
+
+                    Intent i = new Intent(getActivity(), GrupoActivity.class);
+                    startActivity(i);
+
+                }else{
+                    Intent i = new Intent(getActivity(), ChatActivity.class);
+                    i.putExtra("chatContato", usuarioSelecionado);
+                    startActivity(i);
+                }
             }
 
             @Override
@@ -86,6 +102,17 @@ public class ContatosFragment extends Fragment {
 
             }
         }));
+
+        /*Define usuário com e-mail vazio
+        * em caso de e-mail vazio o usuário será utilizado como cabeçalho, exibindo novo grupo
+        *
+        *  */
+
+        Usuario itemGrupo = new Usuario();
+        itemGrupo.setNome("Novo Grupo");
+        itemGrupo.setEmail("");
+
+        listaContatos.add(itemGrupo);
 
         return view;
 
