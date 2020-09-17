@@ -55,10 +55,12 @@ public class CadastroGrupoActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cadastro_grupo);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Novo grupo");
         toolbar.setSubtitle("Defina o nome");
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //Configuracoes iniciais
         textTotalParticipantes = findViewById(R.id.textTotalParticipantes);
@@ -183,19 +185,13 @@ public class CadastroGrupoActivity extends AppCompatActivity {
                                         @Override
                                         public void onComplete(@NonNull Task<Uri> task) {
 
-                                            Uri url = task.getResult();
-                                            atualizaFotoUsuario (url);
+                                          Uri uri = task.getResult();
+                                            grupo.setFoto(uri.toString());
+                                         //   atualizaFotoUsuario (url);
                                         }
                                     });
                                 }
                             });
-
-
-
-
-                           // String url = taskSnapshot.getDownloadUrl().toString();
-
-
 
                         }
                     });

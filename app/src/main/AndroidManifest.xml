@@ -16,12 +16,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.CadastroGrupoActivity"></activity>
         <activity
             android:name=".activity.GrupoActivity"
             android:label="@string/title_activity_grupo"
-            android:parentActivityName=".activity.MainActivity"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName=".activity.MainActivity"></activity>
+        <activity android:name=".activity.CadastroGrupoActivity"
+            android:parentActivityName=".activity.GrupoActivity"/>
         <activity
             android:name=".activity.ChatActivity"
             android:label="@string/title_activity_chat"

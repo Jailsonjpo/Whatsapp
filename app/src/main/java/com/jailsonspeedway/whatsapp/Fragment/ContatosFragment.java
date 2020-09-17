@@ -84,6 +84,8 @@ public class ContatosFragment extends Fragment {
 
                     Intent i = new Intent(getActivity(), GrupoActivity.class);
                     startActivity(i);
+                    /*Intent i = new Intent(getActivity(), GrupoActivity.class);
+                    startActivity(i);*/
 
                 }else{
                     Intent i = new Intent(getActivity(), ChatActivity.class);

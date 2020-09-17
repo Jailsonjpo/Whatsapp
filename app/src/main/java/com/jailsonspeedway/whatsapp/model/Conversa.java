@@ -12,7 +12,7 @@ public class Conversa {
     private Grupo grupo;
 
     public Conversa() {
-
+        this.setIsGroup("false");
     }
 
     public void salvar(){
